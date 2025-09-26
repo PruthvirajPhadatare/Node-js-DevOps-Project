@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "pruthvirajpha/devops-app" 
+        IMAGE_TAG  = "latest"                  
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/PruthvirajPhadatare/Node-js-DevOps-Project.git'
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh """
+                kubectl set image deployment/devops-app devops-app=$IMAGE_NAME:$IMAGE_TAG --record
+                """
+            }
+        }
+    }
+}
