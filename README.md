@@ -64,7 +64,7 @@ terraform apply -auto-approve
 > Make sure you configure `kubectl` to use this cluster:
 
 ```bash
-aws eks --region ap-south-1 update-kubeconfig --name <eks_cluster_name>
+aws eks --region ap-south-1 update-kubeconfig --name devops-project-eks
 ```
 
 ---
