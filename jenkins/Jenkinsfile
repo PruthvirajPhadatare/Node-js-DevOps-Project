@@ -2,8 +2,10 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "pruthvirajpha/devops-app" 
-        IMAGE_TAG  = "latest"                  
+        IMAGE_NAME = "pruthvirajpha/devops-app"
+        IMAGE_TAG  = "latest"
+        AWS_REGION = "ap-south-1"
+        CLUSTER_NAME = "devops-project-eks"
     }
 
     stages {
@@ -13,10 +15,18 @@ pipeline {
             }
         }
 
+        stage('Configure kubectl') {
+            steps {
+                sh """
+                    aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
+                """
+            }
+        }
+
         stage('Deploy to Kubernetes') {
             steps {
                 sh """
-                kubectl set image deployment/devops-app devops-app=$IMAGE_NAME:$IMAGE_TAG --record
+                    kubectl set image deployment/devops-app devops-app=$IMAGE_NAME:$IMAGE_TAG --record
                 """
             }
         }
