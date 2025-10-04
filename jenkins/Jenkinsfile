@@ -17,10 +17,10 @@ pipeline {
 
         stage('Configure kubectl') {
             steps {
-                // Use AWS credentials from Jenkins
+                // Use AWS credentials securely
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-creds-id' // <-- replace with your Jenkins AWS credentials ID
+                    credentialsId: 'aws-creds'  // Use the ID you set in Jenkins
                 ]]) {
                     sh """
                         aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
