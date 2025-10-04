@@ -26,7 +26,7 @@ It covers the **end-to-end DevOps lifecycle**:
 flowchart TD
     A[Developer Laptop] -->|Push Code| B[GitHub Repo]
     B -->|CI/CD Trigger| C[Jenkins Server]
-    C -->|Build & Push Image| D[Amazon ECR]
+    C -->|Build & Push Image| D[DockerHub]
     C -->|Deploy Manifests| E[EKS Cluster]
     E -->|Manage Pods| F[Node.js App Pods]
     F -->|Expose| G[Load Balancer / Service]
@@ -46,7 +46,6 @@ cd Node-js-DevOps-Project
 Choose your path:  
 - 🐳 [Run Locally with Docker](#-local-deployment-using-docker)  
 - ☸️ [Deploy with Kubernetes](#-kubernetes-deployment-local-minikube)  
-- ☁️ [Deploy on AWS EKS](#-aws-eks-deployment)  
 - 🔄 [Automate with Jenkins CI/CD](#-jenkins-pipeline-setup)  
 
 ---
@@ -87,7 +86,7 @@ kubectl get svc
 `infra/main.tf` (Universal IAM Role + VPC + EKS + NodeGroup)
 
 ```bash
-cd infra/
+cd terraform/
 terraform init
 terraform apply -auto-approve
 ```
