@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_REGION = "ap-south-1"
         CLUSTER_NAME = "devops-project-eks"
-        AWS_CREDENTIALS = "aws-eks-creds" // Jenkins credential ID for AWS access/secret keys
+        AWS_CREDENTIALS = "aws-creds" // Jenkins credential ID for AWS access/secret keys
     }
 
     stages {
