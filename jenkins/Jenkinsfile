@@ -4,7 +4,6 @@ pipeline {
     environment {
         AWS_REGION = "ap-south-1"
         CLUSTER_NAME = "devops-project-eks"
-        AWS_CREDENTIALS = "aws-creds" // Jenkins credential ID for AWS access/secret keys
     }
 
     stages {
@@ -14,23 +13,22 @@ pipeline {
             }
         }
 
-        stage('Configure kubectl') {
+        stage('Configure AWS Credentials') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: "${AWS_CREDENTIALS}"]]) {
-                    sh """
-                        aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
-                    """
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-eks-creds']]) {
+                    sh 'aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME'
                 }
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh """
+                sh '''
                     kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                    kubectl apply -f k8s/ingress.yaml
                     kubectl rollout status deployment/devops-app
-                """
+                '''
             }
         }
     }
