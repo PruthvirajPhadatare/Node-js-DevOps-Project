@@ -1,82 +1,131 @@
-# Node.js DevOps Project 🚀
+# 🚀 Node.js DevOps Project with Docker, Kubernetes, Terraform, Jenkins & AWS EKS  
 
-This project demonstrates deploying a **Node.js application** using **Docker**, **Kubernetes**, **Terraform**, **Jenkins**, and **AWS EKS**.  
-It includes **CI/CD automation**, **infrastructure provisioning**, and **production deployment**.
+![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazon-aws)  
+![Docker](https://img.shields.io/badge/Docker-Container-blue?logo=docker)  
+![Kubernetes](https://img.shields.io/badge/Kubernetes-Orchestration-blue?logo=kubernetes)  
+![Terraform](https://img.shields.io/badge/Terraform-IaC-purple?logo=terraform)  
+![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-red?logo=jenkins)  
+![Node.js](https://img.shields.io/badge/Node.js-Backend-green?logo=node.js)  
 
 ---
 
-## 🖼️ Architecture Diagram
+## 📌 Overview
+This project demonstrates a **Node.js application** deployed using **Docker**, **Kubernetes (Minikube/EKS)**, and automated via **Terraform** and **Jenkins CI/CD**.  
+It covers the **end-to-end DevOps lifecycle**:  
+
+- **Local development** with Docker/K8s  
+- **Infrastructure provisioning** with Terraform  
+- **Universal IAM Role** for AWS resources (EC2, VPC, EKS)  
+- **CI/CD pipeline** with Jenkins for automated deployments  
+
+---
+
+## 📐 Architecture  
 
 ```mermaid
 flowchart TD
-    Dev[Developer Push Code] -->|Git Push| GitHub[(GitHub Repo)]
-    GitHub -->|SCM Polling/Webhook| Jenkins[Jenkins CI/CD]
-    Jenkins -->|Build & Test| Docker[Docker Image]
-    Docker -->|Push| ECR[(Amazon ECR)]
-    Jenkins -->|Terraform Apply| AWSInfra[AWS Infra (VPC, Subnets, EKS, EC2)]
-    Jenkins -->|kubectl apply| EKS[(Amazon EKS Cluster)]
-    EKS -->|Deploy| Pods[App Pods]
-    Pods -->|Expose| ALB[Elastic Load Balancer]
-    ALB --> User[User Access via Browser]
-1. Infrastructure Setup with Terraform
-Clone the Repo
-bash
-Copy code
+    A[Developer Laptop] -->|Push Code| B[GitHub Repo]
+    B -->|CI/CD Trigger| C[Jenkins Server]
+    C -->|Build & Push Image| D[Amazon ECR]
+    C -->|Deploy Manifests| E[EKS Cluster]
+    E -->|Manage Pods| F[Node.js App Pods]
+    F -->|Expose| G[Load Balancer / Service]
+    G --> H[End User Browser]
+```
+
+---
+
+## ⚡ Quick Start
+
+```bash
+# Clone the repo
 git clone https://github.com/PruthvirajPhadatare/Node-js-DevOps-Project.git
-cd Node-js-DevOps-Project/terraform
-Universal IAM Role
-This role provides AdministratorAccess (full EC2, EKS, VPC, etc.).
+cd Node-js-DevOps-Project
+```
 
-hcl
-Copy code
-resource "aws_iam_role" "universal_role" {
-  name = "UniversalRole"
+Choose your path:  
+- 🐳 [Run Locally with Docker](#-local-deployment-using-docker)  
+- ☸️ [Deploy with Kubernetes](#-kubernetes-deployment-local-minikube)  
+- ☁️ [Deploy on AWS EKS](#-aws-eks-deployment)  
+- 🔄 [Automate with Jenkins CI/CD](#-jenkins-pipeline-setup)  
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect    = "Allow",
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      },
-      Action = "sts:AssumeRole"
-    }]
-  })
-}
+---
 
-resource "aws_iam_role_policy_attachment" "attach_admin_policy" {
-  role       = aws_iam_role.universal_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
-👉 Attach this role to Jenkins EC2 instance and/or EKS worker nodes.
+## 🐳 Local Deployment using Docker
 
-2. Jenkins Server Setup
-Launch Ubuntu EC2 Instance
-OS: Ubuntu 22.04
+```bash
+# Build Docker image
+docker build -t nodejs-devops-app .
 
-Size: t3.medium (≥4GB RAM)
+# Run container
+docker run -d -p 3000:3000 nodejs-devops-app
+```
 
-Attach: UniversalRole
+App will be available at 👉 `http://localhost:3000`  
 
-Install Prerequisites
-Run sequentially:
+---
 
-bash
-Copy code
+## ☸️ Kubernetes Deployment (Local Minikube)
+
+```bash
+# Start Minikube
+minikube start
+
+# Deploy application
+kubectl apply -f k8s/
+
+# Check pods & services
+kubectl get pods
+kubectl get svc
+```
+
+---
+
+## ☁️ AWS EKS Deployment
+
+### 1️⃣ Provision Infrastructure with Terraform  
+`infra/main.tf` (Universal IAM Role + VPC + EKS + NodeGroup)
+
+```bash
+cd infra/
+terraform init
+terraform apply -auto-approve
+```
+
+### 2️⃣ Update kubeconfig  
+```bash
+aws eks --region ap-south-1 update-kubeconfig --name my-eks-cluster
+```
+
+### 3️⃣ Deploy App to EKS  
+```bash
+kubectl apply -f k8s/
+kubectl get pods
+kubectl get svc
+```
+
+---
+
+## 🔑 Universal IAM Role  
+
+Terraform automatically provisions a **universal IAM role** with:  
+
+- Full access to **EKS, EC2, VPC**  
+- Attached to **Jenkins EC2** for deployments  
+
+---
+
+## 🔄 Jenkins Pipeline Setup  
+
+### 1️⃣ Launch Jenkins Server (Ubuntu EC2)  
+
+Install required tools:  
+```bash
 # Update system
-sudo apt update -y && sudo apt upgrade -y
+sudo apt update -y
 
 # Install Java 17
 sudo apt install -y openjdk-17-jdk
-
-# Install Jenkins
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee \
-  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
-  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
-  /etc/apt/sources.list.d/jenkins.list > /dev/null
-sudo apt update -y
-sudo apt install -y jenkins
 
 # Install Git
 sudo apt install -y git
@@ -84,118 +133,68 @@ sudo apt install -y git
 # Install Docker
 sudo apt install -y docker.io
 sudo usermod -aG docker jenkins
-sudo systemctl enable docker
-sudo systemctl start docker
 
-# Install AWS CLI v2
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-sudo apt install -y unzip
-unzip awscliv2.zip
-sudo ./aws/install
+# Install AWS CLI
+sudo apt install -y awscli
 
 # Install kubectl
-curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.29.0/2024-03-14/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-sudo mv ./kubectl /usr/local/bin/kubectl
-✅ Verify installs:
+curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 
-bash
-Copy code
-java -version
-jenkins --version
-git --version
-docker --version
-aws --version
-kubectl version --client
-3. Jenkins Plugins Required
-Git Plugin
+# Install Jenkins
+sudo apt install -y jenkins
+```
 
-Kubernetes CLI Plugin
+---
 
-AWS Credentials Plugin
+### 2️⃣ Configure Jenkins Plugins  
+- **Git Plugin**  
+- **Pipeline Plugin**  
+- **Kubernetes CLI Plugin**  
+- **AWS Credentials Plugin**  
 
-4. Configure AWS Credentials in Jenkins
-Go to Dashboard → Manage Jenkins → Credentials
+---
 
-Add new credentials:
+### 3️⃣ Add AWS & Git Credentials in Jenkins  
 
-Kind: AWS Credentials
+- Go to **Manage Jenkins → Credentials → Add Credentials**  
+- Add:  
+  - **AWS Access Key & Secret**  
+  - **GitHub PAT (if private repo)**  
 
-ID: aws-creds
+---
 
-Access Key ID + Secret Key
+### 4️⃣ Configure Jenkins Pipeline  
 
-5. Jenkins Pipeline Setup
-Create new pipeline job → NodeJs-DevOps-Project
+- Job Type: **Pipeline**  
+- Git Repo: `https://github.com/PruthvirajPhadatare/Node-js-DevOps-Project.git`  
+- Jenkinsfile Path: `jenkins/Jenkinsfile`  
 
-Pipeline config:
+Pipeline will:  
+1. Pull latest code  
+2. Build Docker image  
+3. Push to ECR  
+4. Deploy to EKS  
 
-SCM: Git
+---
 
-Repo URL: https://github.com/PruthvirajPhadatare/Node-js-DevOps-Project.git
+## ✅ Tech Stack  
 
-Branch: main
+| Tool        | Purpose |
+|-------------|---------|
+| **Node.js** | Backend Application |
+| **Docker**  | Containerization |
+| **Kubernetes** | Orchestration |
+| **Terraform** | Infrastructure as Code |
+| **AWS EKS** | Managed Kubernetes |
+| **Jenkins** | CI/CD Pipeline |
 
-Script Path: jenkins/Jenkinsfile
+---
 
-Save and build → Jenkins automates Docker build, push, Terraform infra, and EKS deployment.
+## 👨‍💻 Author  
 
-6. Local Deployment
-Run with Docker
-bash
-Copy code
-# Build
-docker build -t devops-app .
+**Pruthviraj Phadatare**  
+- 📧 Email: pruthvirajphadatare@outlook.com  
+- 🌐 [GitHub](https://github.com/PruthvirajPhadatare)  
 
-# Run
-docker run -p 3000:3000 devops-app
-Access at 👉 http://localhost:3000
-
-Run with Kubernetes (minikube/kind)
-bash
-Copy code
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
-kubectl apply -f k8s/ingress.yaml
-Check status:
-
-bash
-Copy code
-kubectl get pods
-kubectl get svc
-kubectl get ingress
-7. AWS Deployment (EKS)
-Update kubeconfig
-
-bash
-Copy code
-aws eks --region ap-south-1 update-kubeconfig --name devops-project-eks
-Deploy
-
-bash
-Copy code
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
-kubectl apply -f k8s/ingress.yaml
-Check rollout
-
-bash
-Copy code
-kubectl get nodes
-kubectl get pods
-kubectl get svc
-kubectl get ingress
-Access app via Load Balancer DNS from kubectl get ingress.
-
-✅ Summary
-Local Deployment: Docker / Kubernetes
-
-AWS Deployment: Jenkins CI/CD → Terraform infra → EKS → Ingress → ALB → Browser
-
-Universal IAM Role: Full access for EC2/EKS/VPC
-
-Jenkins Setup: Plugins, prerequisites, credentials, pipeline
-
-👨‍💻 Author
-Pruthviraj Phadatare
-DevOps | AWS Cloud Engineer
+---
